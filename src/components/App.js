@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import logo from '../read-thum.png';
 import './App.css';
 import Web3 from 'web3';
+import SocialNetwork from '../abis/SocialNetwork.json';
 import Navbar from './Navbar';
 
 class App extends Component {
@@ -32,8 +33,31 @@ class App extends Component {
     const web3 = window.web3
     // Load account
     const accounts = await web3.eth.getAccounts()
-    console.log(accounts);
     this.setState({ account: accounts[0] })
+
+    // Network ID
+    const networkId = await web3.eth.net.getId()
+    const networkData = SocialNetwork.networks[networkId];
+
+    if(networkData) {
+      const socialNetwork = web3.eth.Contract(SocialNetwork.abi, networkData.address)
+      this.setState({ socialNetwork: socialNetwork })
+
+      const postCount = await socialNetwork.methods.postCount().call();
+      this.setState({ postCount: postCount })
+
+      // Load Posts
+      for (var i = 1; i <= postCount; i++) {
+        const post = await socialNetwork.methods.posts(i).call()
+        this.setState({ posts: [...this.state.posts, post] })
+      }
+      console.log({ posts: this.state.posts });
+    }
+    else {
+      window.alert('SocialNetwork contract not deployed to detected network')
+    }
+    // Aadress
+    // ABI
   }
 
   // props = properties for the component
@@ -43,7 +67,10 @@ class App extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      account: ''
+      account: '',
+      socialNetwork: null,
+      postCount: 0,
+      posts: []
     }
   }
 
@@ -60,7 +87,7 @@ class App extends Component {
               <div className="content mr-auto ml-auto">
                 <br></br>
                 <br></br>
-                <h1> Lake Machinelearning </h1>
+                <h1> Welcome to the social network </h1>
                 <a href="http://www.rate.ee">
                   <img src = {logo} className="App-logo" alt="logo" />
                 </a>
@@ -68,6 +95,8 @@ class App extends Component {
           </main>
           </div>
         </div>
+
+
       </div>
     );
   }
