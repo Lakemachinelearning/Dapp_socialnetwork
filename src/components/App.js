@@ -1,16 +1,18 @@
 import React, { Component } from 'react';
-import logo from '../read-thum.png';
 import './App.css';
 import Web3 from 'web3';
 import SocialNetwork from '../abis/SocialNetwork.json';
 import Navbar from './Navbar';
+import Identicon from 'identicon.js';
 
 class App extends Component {
+
 
   async componentWillMount() {
     await this.loadWeb3()
     await this.loadBlockchainData()
   }
+
 
   async loadWeb3() {
     // takes connection from metamask
@@ -28,6 +30,7 @@ class App extends Component {
       window.alert('Non-Ethereum browser detected. You should consider trying Metamask! :) ')
     }
   }
+
 
   async loadBlockchainData() {
     const web3 = window.web3
@@ -51,7 +54,6 @@ class App extends Component {
         const post = await socialNetwork.methods.posts(i).call()
         this.setState({ posts: [...this.state.posts, post] })
       }
-      console.log({ posts: this.state.posts });
     }
     else {
       window.alert('SocialNetwork contract not deployed to detected network')
@@ -80,17 +82,49 @@ class App extends Component {
       <div>
 
         <Navbar account = { this.state.account } />
+        <br / >
+        <br / >
+        <br / >
 
         <div container-fluid mt-5>
           <div className = "row">
-            <main role="main" className="col-lg-12 d-flex text-center">
+            <main role="main" className="col-lg-12 ml-auto mr-auto" style = {{ maxWidth: '500px' }}>
               <div className="content mr-auto ml-auto">
-                <br></br>
-                <br></br>
-                <h1> Welcome to the social network </h1>
-                <a href="http://www.rate.ee">
-                  <img src = {logo} className="App-logo" alt="logo" />
-                </a>
+                { this.state.posts.map((post, key) => {
+                  return(
+
+                    <div className="card mb-4" key={key} >
+
+                      <div className="card-header" >
+                        <img
+                          className="mr-2"
+                          width = "20"
+                          height = "20"
+                          src = {`data:image/png;base64, ${new Identicon(this.state.account, 20).toString()}`}
+                          alt = 'identicon'
+                        />
+                        <small className="text-muted">{post.author}</small>
+                      </div>
+
+                      <ul id="postList" className="list-group list-group-flush">
+                        <li className="list-group-item" >
+                          <p>{post.content}</p>
+                        </li>
+
+                        <li key = {key} className = "list-group-item py-2">
+                          <small className="float-left mt-1 text-muted">
+                            TIPS: {window.web3.utils.fromWei(post.tipAmount.toString(), 'Ether')} ETH
+                          </small>
+                          <button className="btn btn-link btn-sm float-right pt-0">
+                            TIP 0.1 ETH
+                          </button>
+                        </li>
+                      </ul>
+
+                    </div>
+
+                  )
+                })}
              </div>
           </main>
           </div>
